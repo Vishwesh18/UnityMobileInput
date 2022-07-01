@@ -10,6 +10,7 @@
 #import "UnityForwardDecls.h"
 #import <MobileCoreServices/UTCoreTypes.h>
 #import "Common.h"
+#import <UnityFramework/UnityAppController.h>
 
 #define CREATE @"CREATE_EDIT"
 #define REMOVE @"REMOVE_EDIT"
@@ -38,6 +39,8 @@ NSString *plugin;
 @property(nonatomic, strong) UIColor *realTextColor UI_APPEARANCE_SELECTOR;
 @property(nonatomic, strong) UIColor *placeholderColor UI_APPEARANCE_SELECTOR;
 @end
+
+
 
 @interface MobileInput : NSObject <UITextFieldDelegate, UITextViewDelegate> {
     int inputId;
@@ -258,32 +261,40 @@ BOOL multiline;
 - (void)create:(NSDictionary *)data {
     NSString *placeholder = [data valueForKey:@"placeholder"];
     float fontSize = [[data valueForKey:@"font_size"] floatValue];
+    float fontSizeRatio = [[data valueForKey:@"font_size_ratio"] floatValue];
+    
     float x = [[data valueForKey:@"x"] floatValue] * viewController.view.bounds.size.width;
     float y = [[data valueForKey:@"y"] floatValue] * viewController.view.bounds.size.height;
     float width = [[data valueForKey:@"width"] floatValue] * viewController.view.bounds.size.width;
     float height = [[data valueForKey:@"height"] floatValue] * viewController.view.bounds.size.height;
+    
     characterLimit = [[data valueForKey:@"character_limit"] intValue];
+    
     float textColor_r = [[data valueForKey:@"text_color_r"] floatValue];
     float textColor_g = [[data valueForKey:@"text_color_g"] floatValue];
     float textColor_b = [[data valueForKey:@"text_color_b"] floatValue];
     float textColor_a = [[data valueForKey:@"text_color_a"] floatValue];
     UIColor *textColor = [UIColor colorWithRed:textColor_r green:textColor_g blue:textColor_b alpha:textColor_a];
+    
     float backColor_r = [[data valueForKey:@"back_color_r"] floatValue];
     float backColor_g = [[data valueForKey:@"back_color_g"] floatValue];
     float backColor_b = [[data valueForKey:@"back_color_b"] floatValue];
     float backColor_a = [[data valueForKey:@"back_color_a"] floatValue];
     UIColor *backgroundColor = [UIColor colorWithRed:backColor_r green:backColor_g blue:backColor_b alpha:backColor_a];
+    
     float placeHolderColor_r = [[data valueForKey:@"placeholder_color_r"] floatValue];
     float placeHolderColor_g = [[data valueForKey:@"placeholder_color_g"] floatValue];
     float placeHolderColor_b = [[data valueForKey:@"placeholder_color_b"] floatValue];
     float placeHolderColor_a = [[data valueForKey:@"placeholder_color_a"] floatValue];
     UIColor *placeHolderColor = [UIColor colorWithRed:placeHolderColor_r green:placeHolderColor_g blue:placeHolderColor_b alpha:placeHolderColor_a];
+    
     NSString *contentType = [data valueForKey:@"content_type"];
     NSString *alignment = [data valueForKey:@"align"];
     NSString *customFont = [data valueForKey:@"font"];
     BOOL withDoneButton = [[data valueForKey:@"with_done_button"] boolValue];
     BOOL withClearButton = [[data valueForKey:@"with_clear_button"] boolValue];
     multiline = [[data valueForKey:@"multiline"] boolValue];
+    BOOL isStaticText = [[data valueForKey:@"isStaticText"] boolValue];
     BOOL autoCorrection = NO;
     BOOL password = NO;
     NSString *inputType = [data valueForKey:@"input_type"];
@@ -337,39 +348,40 @@ BOOL multiline;
     UIControlContentHorizontalAlignment halign = UIControlContentHorizontalAlignmentLeft;
     UIControlContentVerticalAlignment valign = UIControlContentVerticalAlignmentCenter;
     NSTextAlignment textAlign = NSTextAlignmentCenter;
-    if ([alignment isEqualToString:@"UpperLeft"]) {
+    NSLog(@"Text Align  :  %@", alignment);
+    if ([alignment isEqualToString:@"TopLeft"]) {
         valign = UIControlContentVerticalAlignmentTop;
         halign = UIControlContentHorizontalAlignmentLeft;
         textAlign = NSTextAlignmentLeft;
-    } else if ([alignment isEqualToString:@"UpperCenter"]) {
+    } else if ([alignment isEqualToString:@"Top"]) {
         valign = UIControlContentVerticalAlignmentTop;
         halign = UIControlContentHorizontalAlignmentCenter;
         textAlign = NSTextAlignmentCenter;
-    } else if ([alignment isEqualToString:@"UpperRight"]) {
+    } else if ([alignment isEqualToString:@"TopRight"]) {
         valign = UIControlContentVerticalAlignmentTop;
         halign = UIControlContentHorizontalAlignmentRight;
         textAlign = NSTextAlignmentRight;
-    } else if ([alignment isEqualToString:@"MiddleLeft"]) {
+    } else if ([alignment isEqualToString:@"Left"]) {
         valign = UIControlContentVerticalAlignmentCenter;
         halign = UIControlContentHorizontalAlignmentLeft;
         textAlign = NSTextAlignmentLeft;
-    } else if ([alignment isEqualToString:@"MiddleCenter"]) {
+    } else if ([alignment isEqualToString:@"Center"]) {
         valign = UIControlContentVerticalAlignmentCenter;
         halign = UIControlContentHorizontalAlignmentCenter;
         textAlign = NSTextAlignmentCenter;
-    } else if ([alignment isEqualToString:@"MiddleRight"]) {
+    } else if ([alignment isEqualToString:@"Right"]) {
         valign = UIControlContentVerticalAlignmentCenter;
         halign = UIControlContentHorizontalAlignmentRight;
         textAlign = NSTextAlignmentRight;
-    } else if ([alignment isEqualToString:@"LowerLeft"]) {
+    } else if ([alignment isEqualToString:@"BottomLeft"]) {
         valign = UIControlContentVerticalAlignmentBottom;
         halign = UIControlContentHorizontalAlignmentLeft;
         textAlign = NSTextAlignmentLeft;
-    } else if ([alignment isEqualToString:@"LowerCenter"]) {
+    } else if ([alignment isEqualToString:@"Bottom"]) {
         valign = UIControlContentVerticalAlignmentBottom;
         halign = UIControlContentHorizontalAlignmentCenter;
         textAlign = NSTextAlignmentCenter;
-    } else if ([alignment isEqualToString:@"LowerRight"]) {
+    } else if ([alignment isEqualToString:@"BottomRight"]) {
         valign = UIControlContentVerticalAlignmentBottom;
         halign = UIControlContentHorizontalAlignmentRight;
         textAlign = NSTextAlignmentRight;
@@ -394,31 +406,34 @@ BOOL multiline;
     } else if ([returnKeyTypeString isEqualToString:@"Send"]) {
         returnKeyType = UIReturnKeySend;
     }
-    fontSize = fontSize / [UIScreen mainScreen].scale;
+
+//    fontSize = fontSize / [UIScreen mainScreen].scale;
+    fontSize = width * fontSizeRatio;
     UIFont *uiFont = [UIFont systemFontOfSize:fontSize];
+    
+//    NSString *concat = [NSString stringWithFormat: @"%@%@", "Font Name : ", customFont];
+//    NSLog(concat);
+
     if (![customFont isEqualToString:@"default"]) {
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        NSString *fontPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.ttf", customFont]];
-        NSURL *url = [NSURL fileURLWithPath:fontPath];
-        CGDataProviderRef fontDataProvider = CGDataProviderCreateWithURL((__bridge CFURLRef)url);
-        CGFontRef newFont = CGFontCreateWithDataProvider(fontDataProvider);
-        NSString *font = (__bridge NSString *)CGFontCopyPostScriptName(newFont);
-        CGDataProviderRelease(fontDataProvider);
-        CFErrorRef error;
-        CTFontManagerRegisterGraphicsFont(newFont, &error);
-        CGFontRelease(newFont);
-        uiFont = [UIFont fontWithName:font size:fontSize];
+        uiFont = [UIFont fontWithName:customFont size:fontSize];
+        NSLog(@"Custom Font : %@", customFont);
+        NSLog(@"Custom Size AFTER: %f",fontSize);
     }
+    
     if (multiline) {
         PlaceholderTextView *textView = [[PlaceholderTextView alloc] initWithFrame:CGRectMake(x, y, width, height)];
         textView.keyboardType = keyType;
         [textView setFont:uiFont];
+        textView.textContainer.lineFragmentPadding = 0;
+        [textView setTextContainerInset:UIEdgeInsetsZero];
         textView.scrollEnabled = TRUE;
         textView.delegate = self;
         textView.tag = inputId;
         textView.text = @"";
         textView.textColor = textColor;
+//        textView.backgroundColor = UIColor(backgroundColor, alpha: 0.5)
         textView.backgroundColor = backgroundColor;
+        textView.alpha = 0.5;
         textView.returnKeyType = returnKeyType;
         textView.textAlignment = textAlign;
         textView.autocorrectionType = autoCorrection ? UITextAutocorrectionTypeYes : UITextAutocorrectionTypeNo;
@@ -429,7 +444,7 @@ BOOL multiline;
         if (keyType == UIKeyboardTypeEmailAddress) {
             textView.autocapitalizationType = UITextAutocapitalizationTypeNone;
         }
-        [textView setSecureTextEntry:password];
+        [textView setSecureTextEntry:password ? @"YES" : @"NO"];
         if (keyboardDoneButtonView != nil) {
             textView.inputAccessoryView = keyboardDoneButtonView;
         }
@@ -453,7 +468,7 @@ BOOL multiline;
         }
         NSMutableParagraphStyle *setting = [[NSMutableParagraphStyle alloc] init];
         setting.alignment = textAlign;
-        textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:placeholder attributes:@{NSForegroundColorAttributeName: placeHolderColor, NSParagraphStyleAttributeName : setting}];        
+        textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:placeholder attributes:@{NSForegroundColorAttributeName: placeHolderColor, NSParagraphStyleAttributeName : setting}];
         textField.delegate = self;
         if (keyType == UIKeyboardTypeEmailAddress) {
             textField.autocapitalizationType = UITextAutocapitalizationTypeNone;
@@ -461,12 +476,17 @@ BOOL multiline;
         [textField addTarget:self action:@selector(textFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
         [textField addTarget:self action:@selector(textFieldActive:) forControlEvents:UIControlEventEditingDidBegin];
         [textField addTarget:self action:@selector(textFieldInActive:) forControlEvents:UIControlEventEditingDidEnd];
-        [textField setSecureTextEntry:password];
+        [textField setSecureTextEntry : password ? @"YES" : @"NO"];
         if (keyboardDoneButtonView != nil) {
             textField.inputAccessoryView = keyboardDoneButtonView;
         }
         editView = textField;
     }
+    
+    if(isStaticText){
+        [self disableEditView];
+    }
+    
     [mainViewController.view addSubview:editView];
     NSMutableDictionary *msg = [[NSMutableDictionary alloc] init];
     [msg setValue:READY forKey:@"msg"];
@@ -505,6 +525,11 @@ BOOL multiline;
 
 - (void)showKeyboard:(BOOL)isShow {
     [editView endEditing:(isShow ? YES : NO)];
+}
+
+- (void)disableEditView {
+    editView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.0];
+    editView.userInteractionEnabled = NO;
 }
 
 - (void)setVisible:(BOOL)isVisible {
