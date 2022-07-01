@@ -41,7 +41,7 @@ Add url `https://github.com/mopsicus/UnityMobileInput.git` to Package Manager, o
 
 ## How to use custom fonts
 1. Copy font TTF to StreamingAssets folder
-2. Input font name in property instead "default"
+2. Input font name in property instead "default" (For iOS, Register your font with the same name using *loadFontFromResourceBundle* method)
 3. You are cool
 
 
